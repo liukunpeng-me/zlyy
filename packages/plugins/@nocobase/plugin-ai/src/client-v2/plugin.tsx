@@ -19,6 +19,7 @@ import { AIPluginFeatureManagerImpl } from './manager/ai-feature-manager';
 import { AIConfigRepository } from './repositories/AIConfigRepository';
 import { builtinLLMProviderOptions } from './llm-providers';
 import { registerPluginAIWorkflow } from './workflow/register';
+import { MOBILE_UPLOAD_ROUTE_NAME, MOBILE_UPLOAD_ROUTE_PATH } from './ai-employees/chatbox/mobile-upload';
 import { setupAICoding } from './ai-employees/ai-coding/setup';
 import { registerPluginAIRunJSFacade } from './runjs/registerAIEmployeeRunJSFacade';
 import {
@@ -126,6 +127,12 @@ export class PluginAIClientV2 extends Plugin<object, Application> {
     registerPluginAISettingsPages(this.pluginSettingsManager, this.t.bind(this));
     registerPluginAIPermissionsTab(this.app.pm, this.t.bind(this));
     registerPluginAIWorkflow(this.app.pm);
+    // Opened on a phone from the chat box QR code, so it must work without a login; the URL token is the credential.
+    this.router.add(MOBILE_UPLOAD_ROUTE_NAME, {
+      path: MOBILE_UPLOAD_ROUTE_PATH,
+      componentLoader: () => import('./pages/MobileUploadPage'),
+      skipAuthCheck: true,
+    });
     builtinLLMProviderOptions.forEach(([name, options]) => {
       this.aiManager.registerLLMProvider(name, options);
     });

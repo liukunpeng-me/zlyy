@@ -58,6 +58,11 @@ import {
 import { KnowledgeBaseManager } from './ai-employees/ai-knowledge-base';
 import { LLMStreamCachedManager } from './manager/llm-stream-manager';
 import { appendAIFileAttachmentSource } from './attachments';
+import {
+  AIFileUploadSessionManager,
+  createUploadBySessionMiddleware,
+  createUploadSessionActions,
+} from './upload-session';
 import { withDefaultKnowledgeBaseRetrievalStrategy } from './ai-employees/ai-knowledge-base';
 type MCPClientModel = Model<{ useUserContext?: boolean }>;
 type TransactionOptions = {
@@ -70,6 +75,7 @@ export class PluginAIServer extends Plugin {
   aiEmployeesManager = new AIEmployeesManager(this);
   aiConversationsManager = new AIConversationsManager(this);
   llmStreamCachedManager = new LLMStreamCachedManager(this);
+  uploadSessions = new AIFileUploadSessionManager(this);
   builtInManager = new BuiltInManager(this);
   aiContextDatasourceManager = new AIContextDatasourceManager(this);
   aiCodingManager = new AICodingManager(this);
@@ -213,6 +219,19 @@ export class PluginAIServer extends Plugin {
     this.app.resourceManager.define(aiContextDatasources);
     this.app.resourceManager.define(aiMcpClients);
 
+    Object.entries(createUploadSessionActions(this)).forEach(([name, action]) => {
+      this.app.resourceManager.registerActionHandler(`aiFiles:${name}`, action);
+    });
+    // `uploadBySession` runs the stock `create` handler; see createUploadBySessionMiddleware for how it is authorized.
+    this.app.resourceManager.registerActionHandler(
+      'aiFiles:uploadBySession',
+      this.app.resourceManager.getRegisteredHandler('create'),
+    );
+    this.app.resourceManager.use(createUploadBySessionMiddleware(this), {
+      tag: 'aiFilesUploadBySession',
+      before: 'auth',
+    });
+
     this.app.resourceManager.use(
       async (ctx, next) => {
         const { resourceName, actionName } = ctx.action;
@@ -306,6 +325,10 @@ export class PluginAIServer extends Plugin {
     this.app.acl.allow('aiContextDatasources', 'list', 'loggedIn');
     this.app.acl.allow('aiContextDatasources', 'preview', 'loggedIn');
     this.app.acl.allow('aiFiles', 'create', 'loggedIn');
+    this.app.acl.allow('aiFiles', ['createUploadSession', 'getUploadSession', 'revokeUploadSession'], 'loggedIn');
+    // `uploadBySession` is deliberately not allowed here: its middleware authenticates the token before `auth` runs and
+    // rewrites the request into `aiFiles:create` for the session's user. Without that, it must still require a login.
+    this.app.acl.allow('aiFiles', 'checkUploadSession', 'public');
     this.app.acl.allow('aiSettings', 'publicGet', 'loggedIn');
     this.app.acl.allow('ai', 'listAllEnabledModels', 'loggedIn');
 

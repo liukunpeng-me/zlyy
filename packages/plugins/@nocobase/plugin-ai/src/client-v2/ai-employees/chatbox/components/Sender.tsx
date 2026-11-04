@@ -10,7 +10,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Attachments, Sender as AntSender } from '@ant-design/x';
 import { Alert, Button, Flex, Space, Spin, theme, Tooltip, Typography, type GetRef, type UploadFile } from 'antd';
-import { EditOutlined, InfoCircleOutlined, PaperClipOutlined } from '@ant-design/icons';
+import { EditOutlined, InfoCircleOutlined, PaperClipOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { css } from '@emotion/css';
 import { observer } from '@nocobase/flow-engine';
 import { useT } from '../../../locale';
@@ -24,6 +24,7 @@ import { AIEmployeeSwitcher } from './AIEmployeeSwitcher';
 import { AddContextButton } from '../../AddContextButton';
 import { ContextItem } from './ContextItem';
 import { FileCardList, useAttachmentFileCards } from './Attachments';
+import { MobileUploadDialog } from './MobileUploadDialog';
 import { ModelSwitcher } from './ModelSwitcher';
 import { SearchSwitch } from './SearchSwitch';
 import { CompactSenderOptions } from './CompactSenderOptions';
@@ -550,37 +551,58 @@ const UploadFiles: React.FC<{ disabled?: boolean }> = observer(({ disabled }) =>
   const chat = useChat(currentConversation, runtime);
   const attachments = chat.use.attachments();
   const items = useAttachmentFileCards(attachments);
+  const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
 
   if (disabled) {
     return <Button type="text" icon={<PaperClipOutlined />} disabled />;
   }
 
   return (
-    <Attachments
-      getDropContainer={() => chatBoxRef?.current}
-      styles={{
-        placeholder: {
-          opacity: 0.8,
-        },
-      }}
-      placeholder={{
-        icon: <PaperClipOutlined />,
-        title: t('Drag & Drop files here'),
-      }}
-      items={items}
-      action={uploadProps.action}
-      beforeUpload={uploadProps.beforeUpload}
-      customRequest={uploadProps.customRequest as React.ComponentProps<typeof Attachments>['customRequest']}
-      onChange={(info) => {
-        uploadProps.onChange({
-          fileList: info.fileList.map(uploadFileToAttachment),
-        });
-      }}
-    >
-      <Tooltip title={t('Upload files')} arrow={false}>
-        <Button type="text" icon={<PaperClipOutlined />} />
+    <>
+      <Attachments
+        getDropContainer={() => chatBoxRef?.current}
+        styles={{
+          placeholder: {
+            opacity: 0.8,
+          },
+        }}
+        placeholder={{
+          icon: <PaperClipOutlined />,
+          title: t('Drag & Drop files here'),
+        }}
+        items={items}
+        action={uploadProps.action}
+        beforeUpload={uploadProps.beforeUpload}
+        customRequest={uploadProps.customRequest as React.ComponentProps<typeof Attachments>['customRequest']}
+        onChange={(info) => {
+          uploadProps.onChange({
+            fileList: info.fileList.map(uploadFileToAttachment),
+          });
+        }}
+      >
+        <Tooltip title={t('Upload files')} arrow={false}>
+          <Button type="text" icon={<PaperClipOutlined />} />
+        </Tooltip>
+      </Attachments>
+      <Tooltip title={t('Upload from phone')} arrow={false}>
+        <Button
+          type="text"
+          icon={<QrcodeOutlined />}
+          aria-label={t('Upload from phone')}
+          onClick={() => setMobileUploadOpen(true)}
+        />
       </Tooltip>
-    </Attachments>
+      <MobileUploadDialog
+        open={mobileUploadOpen}
+        attachments={attachments}
+        onClose={() => setMobileUploadOpen(false)}
+        onAttachments={(incoming) => {
+          if (uploadProps.validateFiles(incoming)) {
+            chat.addAttachments(incoming);
+          }
+        }}
+      />
+    </>
   );
 });
 
