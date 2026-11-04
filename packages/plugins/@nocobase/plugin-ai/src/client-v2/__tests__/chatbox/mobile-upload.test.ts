@@ -7,7 +7,7 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkMobileUploadSession,
   getMobileUploadSession,
@@ -18,25 +18,63 @@ import {
 } from '../../ai-employees/chatbox/mobile-upload';
 
 describe('getMobileUploadUrl', () => {
-  it('builds an absolute url under the app basename', () => {
-    const app = { router: { getBasename: () => '/nocobase' } };
-    expect(getMobileUploadUrl(app, 'abc', 'https://example.com')).toBe(
-      'https://example.com/nocobase/ai-mobile-upload/abc',
-    );
+  const globals = window as unknown as Record<string, string | undefined>;
+
+  afterEach(() => {
+    delete globals.__nocobase_public_path__;
+    delete globals.__nocobase_modern_client_prefix__;
   });
 
-  it('falls back to the public path and handles a root deployment', () => {
-    expect(getMobileUploadUrl({ getPublicPath: () => '/' }, 'abc', 'https://example.com')).toBe(
-      'https://example.com/ai-mobile-upload/abc',
-    );
-    expect(getMobileUploadUrl(undefined, 'abc', 'https://example.com')).toBe(
-      'https://example.com/ai-mobile-upload/abc',
-    );
+  describe('inside the modern client', () => {
+    beforeEach(() => {
+      globals.__nocobase_public_path__ = '/nocobase/v/';
+      globals.__nocobase_modern_client_prefix__ = 'v';
+      window.history.pushState({}, '', '/nocobase/v/admin');
+    });
+
+    it('builds an absolute url under the router basename', () => {
+      const app = { router: { getBasename: () => '/nocobase/v' } };
+      expect(getMobileUploadUrl(app, 'abc', 'https://example.com')).toBe(
+        'https://example.com/nocobase/v/ai-mobile-upload/abc',
+      );
+    });
+
+    it('falls back to the public path', () => {
+      expect(getMobileUploadUrl({ getPublicPath: () => '/nocobase/v/' }, 'abc', 'https://example.com')).toBe(
+        'https://example.com/nocobase/v/ai-mobile-upload/abc',
+      );
+    });
+  });
+
+  describe('inside the legacy client, where the route is not registered', () => {
+    beforeEach(() => {
+      globals.__nocobase_public_path__ = '/';
+      globals.__nocobase_modern_client_prefix__ = 'v';
+      window.history.pushState({}, '', '/admin');
+    });
+
+    it('points at the modern client prefix so the phone does not hit the legacy login guard', () => {
+      expect(getMobileUploadUrl({ getPublicPath: () => '/' }, 'abc', 'https://example.com')).toBe(
+        'https://example.com/v/ai-mobile-upload/abc',
+      );
+    });
+
+    it('keeps the app public path and honors a custom modern client prefix', () => {
+      globals.__nocobase_public_path__ = '/nocobase/';
+      globals.__nocobase_modern_client_prefix__ = 'next';
+      window.history.pushState({}, '', '/nocobase/admin');
+      expect(getMobileUploadUrl({ getPublicPath: () => '/nocobase/' }, 'abc', 'https://example.com')).toBe(
+        'https://example.com/nocobase/next/ai-mobile-upload/abc',
+      );
+    });
   });
 
   it('encodes the token so it cannot alter the path', () => {
-    expect(getMobileUploadUrl(undefined, 'a/b?c', 'https://example.com')).toBe(
-      'https://example.com/ai-mobile-upload/a%2Fb%3Fc',
+    globals.__nocobase_public_path__ = '/v/';
+    globals.__nocobase_modern_client_prefix__ = 'v';
+    window.history.pushState({}, '', '/v/admin');
+    expect(getMobileUploadUrl({ getPublicPath: () => '/v/' }, 'a/b?c', 'https://example.com')).toBe(
+      'https://example.com/v/ai-mobile-upload/a%2Fb%3Fc',
     );
   });
 });

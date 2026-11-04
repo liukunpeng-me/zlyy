@@ -7,6 +7,7 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
+import { getModernClientPrefix, getRouteRuntimeVersion } from '@nocobase/client-v2';
 import type { APIClient } from '@nocobase/client-v2';
 import type { Attachment } from '../types';
 import { normalizeAIFileUploadAttachment } from './utils';
@@ -60,7 +61,10 @@ export function getMobileUploadUrl(
   token: string,
   origin = window.location.origin,
 ) {
-  const base = app?.router?.getBasename?.() ?? app?.getPublicPath?.();
+  const appBase = app?.router?.getBasename?.() ?? app?.getPublicPath?.();
+  // The upload page is only registered in the modern client. The chat box also renders inside the legacy client,
+  // where the app base has no modern prefix and the phone would be redirected to the legacy login page.
+  const base = getRouteRuntimeVersion() === 'modern' ? appBase : joinPath(appBase, getModernClientPrefix());
   const pathname = joinPath(base, MOBILE_UPLOAD_ROUTE_PATH.replace(':token', encodeURIComponent(token)));
   return new URL(pathname, origin).toString();
 }
