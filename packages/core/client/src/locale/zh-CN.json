@@ -1459,6 +1459,7 @@
   "Toggles the subfield mode": "切换子字段模式",
   "Tomorrow": "明天",
   "Tooltip": "提示",
+  "Supports line breaks and Markdown images, e.g. ![description](image URL)": "支持换行和 Markdown 图片，例如 ![说明](图片地址)",
   "Top left": "左上角",
   "Top right": "右上角",
   "Total count": "总数量",

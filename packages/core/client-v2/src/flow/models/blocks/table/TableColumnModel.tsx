@@ -36,6 +36,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { getRowKey } from './utils';
 import { getSavedAssociationTitleField, getTableColumnSortField } from './sortUtils';
 import { getFieldBindingUse, rebuildFieldSubModel } from '../../../internal/utils/rebuildFieldSubModel';
+import { toMarkdownTip } from '../../../components/MarkdownTip';
 import { getSavedDateTimeFormatParams, resolveDateTimeDisplayProps } from '../../../utils/dateTimeDisplayProps';
 import { QuickEditDataScopeInput, resolveQuickEditDataScopeStep } from '../../../internal/utils/quickEditDataScope';
 
@@ -276,7 +277,7 @@ export class TableColumnModel extends DisplayItemModel {
       title: this.props.tooltip ? (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           {titleContent}
-          <Tooltip title={this.props.tooltip}>
+          <Tooltip title={toMarkdownTip(this.props.tooltip)}>
             <QuestionCircleOutlined style={{ cursor: 'pointer' }} />
           </Tooltip>
         </span>
@@ -468,6 +469,7 @@ TableColumnModel.registerFlow({
         tooltip: {
           'x-component': 'Input.TextArea',
           'x-decorator': 'FormItem',
+          description: tExpr('Supports line breaks and Markdown images, e.g. ![description](image URL)'),
         },
       },
       handler(ctx, params) {
