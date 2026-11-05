@@ -18,6 +18,7 @@ import {
 import { get, castArray } from 'lodash';
 import React from 'react';
 import { FieldModel } from '../../base';
+import { withMarkdownTips } from '../../../components/MarkdownTip';
 import { DetailsGridModel } from './DetailsGridModel';
 import { rebuildFieldSubModel } from '../../../internal/utils/rebuildFieldSubModel';
 import { isToManyAssociationField } from '../../../internal/utils/modelUtils';
@@ -218,7 +219,7 @@ export class DetailsItemModel extends DisplayItemModel<{
       }),
     );
     return (
-      <FormItem {...mergedProps} value={value}>
+      <FormItem {...withMarkdownTips(mergedProps)} value={value}>
         <FieldModelRenderer model={modelForRender} />
       </FormItem>
     );
@@ -293,6 +294,7 @@ DetailsItemModel.registerFlow({
         tooltip: {
           'x-component': 'Input.TextArea',
           'x-decorator': 'FormItem',
+          description: tExpr('Supports line breaks and Markdown images, e.g. ![description](image URL)'),
         },
       },
       handler(ctx, params) {
@@ -305,6 +307,7 @@ DetailsItemModel.registerFlow({
         description: {
           'x-component': 'Input.TextArea',
           'x-decorator': 'FormItem',
+          description: tExpr('Supports line breaks and Markdown images, e.g. ![description](image URL)'),
         },
       },
       handler(ctx, params) {

@@ -1460,6 +1460,7 @@
   "Toggles the subfield mode": "Toggles the subfield mode",
   "Tomorrow": "Tomorrow",
   "Tooltip": "Tooltip",
+  "Supports line breaks and Markdown images, e.g. ![description](image URL)": "Supports line breaks and Markdown images, e.g. ![description](image URL)",
   "Top left": "Top left",
   "Top right": "Top right",
   "Total count": "Total count",

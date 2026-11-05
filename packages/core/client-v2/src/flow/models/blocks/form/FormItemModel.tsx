@@ -19,6 +19,7 @@ import {
 import { customAlphabet as Alphabet } from 'nanoid';
 import React from 'react';
 import { FieldModel } from '../../base/FieldModel';
+import { withMarkdownTips } from '../../../components/MarkdownTip';
 import { DetailsItemModel } from '../details/DetailsItemModel';
 import { EditFormModel } from './EditFormModel';
 import _ from 'lodash';
@@ -172,7 +173,7 @@ export class FormItemModel<T extends DefaultStructure = DefaultStructure> extend
     const record = this.context.item?.value || this.context.record;
     const content = (
       <FormItem
-        {...formItemProps}
+        {...withMarkdownTips(formItemProps)}
         name={fieldPath}
         validateFirst={true}
         disabled={
@@ -346,6 +347,7 @@ FormItemModel.registerFlow({
         tooltip: {
           'x-component': 'Input.TextArea',
           'x-decorator': 'FormItem',
+          description: tExpr('Supports line breaks and Markdown images, e.g. ![description](image URL)'),
         },
       },
       handler(ctx, params) {
@@ -358,6 +360,7 @@ FormItemModel.registerFlow({
         description: {
           'x-component': 'Input.TextArea',
           'x-decorator': 'FormItem',
+          description: tExpr('Supports line breaks and Markdown images, e.g. ![description](image URL)'),
           'x-component-props': {
             autoSize: true,
           },
