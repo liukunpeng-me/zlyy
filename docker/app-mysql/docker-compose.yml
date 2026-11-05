@@ -11,6 +11,7 @@ services:
       - mysql
     environment:
       - APP_KEY=your-secret-key # Replace it with your own app key
+      - APP_CLIENT_ENTRY_MODE=modern-only
       - ENCRYPTION_FIELD_KEY=your-secret-key # Replace it with your own app key
       - DB_DIALECT=mysql
       - DB_HOST=mysql

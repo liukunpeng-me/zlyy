@@ -9,6 +9,7 @@ services:
       - nocobase
     environment:
       - APP_KEY=your-secret-key # Replace it with your own app key
+      - APP_CLIENT_ENTRY_MODE=modern-only
     volumes:
       - ./storage:/app/nocobase/storage
     ports:
